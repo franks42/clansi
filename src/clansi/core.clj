@@ -98,11 +98,11 @@
        base
        (apply style (if (coll? wrapper) (second wrapper) wrapper) styles)))
 
-(defn ansify-helper
+(defn clansify-helper
 	"Takes a sequence of strings and keywords, where the keywords identify ansi-color-code directives.
 	The ansi-code directives only affect the strings that follow it. 
 	Returns a single string of the concatenations of the individual strings in the list, where each of these strings is prepended with the accumulated ansi-codes.
-	For example, (ansify \"this prints \" :red \"red\" :reset \" and that prints \" :blue \"blue\")
+	For example, (clansify \"this prints \" :red \"red\" :reset \" and that prints \" :blue \"blue\")
 	will print "
 	[& s] 
 	(apply str  
@@ -119,7 +119,7 @@
 		(ansi :reset)))
 
 
-(defn ansify
+(defn clansify
 	""
 	[& ansified-strings] 
 	(apply str (first 	
@@ -128,14 +128,14 @@
 				(if (keyword? item) ;; ansi-directive
 					[(first strings&keywords) (conj (second strings&keywords) item)]
 					(if (sequential? item) ;; format-inheriting substring
-						[(conj (first strings&keywords) (apply ansify (concat (second strings&keywords) item)))
+						[(conj (first strings&keywords) (apply clansify (concat (second strings&keywords) item)))
 					   (second strings&keywords)]
 						(if (string? item) ;; format string with accumulated ansi-directives
 						  [(conj (first strings&keywords)
-						         (apply ansify-helper (conj (second strings&keywords) item)))
+						         (apply clansify-helper (conj (second strings&keywords) item)))
 					     (second strings&keywords)]
 						  [(conj (first strings&keywords)
-						         (apply ansify-helper (conj (second strings&keywords) item)))
+						         (apply clansify-helper (conj (second strings&keywords) item)))
 					     (second strings&keywords)]))))
 ;;						  strings&keywords)))) ;; ignore other types
 			[[""] []] 
