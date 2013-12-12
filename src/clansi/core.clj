@@ -32,6 +32,10 @@
    :bg-cyan    "[46m"
    })
 
+(def ^:dynamic *ANSI-STYLES* 
+	{:white-on-black [:white :bg-black]
+	 :protected      [:green :bright] 
+	 :unprotected    [:red :bright]})
 
 (def ^:dynamic *use-ansi* "Rebind this to false if you don't want to see ANSI codes in some part of your code." true)
 
@@ -90,9 +94,53 @@
   (wrap-style \"debug\" [\"[\" \"]\"] :red)
   "
   [base wrapper & styles]
-  (str (apply style wrapper styles)
+  (str (apply style (if (coll? wrapper) (first wrapper) wrapper) styles)
        base
-       (apply style wrapper styles)))
+       (apply style (if (coll? wrapper) (second wrapper) wrapper) styles)))
+
+(defn ansify-helper
+	"Takes a sequence of strings and keywords, where the keywords identify ansi-color-code directives.
+	The ansi-code directives only affect the strings that follow it. 
+	Returns a single string of the concatenations of the individual strings in the list, where each of these strings is prepended with the accumulated ansi-codes.
+	For example, (ansify \"this prints \" :red \"red\" :reset \" and that prints \" :blue \"blue\")
+	will print "
+	[& s] 
+	(apply str  
+		(ansi :reset)
+		(apply str 
+			(for [c s] 
+				(if (keyword? c) 
+					(if-let [codes (c *ANSI-STYLES*)]
+						(apply str (map ansi codes)) 
+						(ansi c))
+					(if-let [codes (:ansi-codes (meta c))]
+						(str (apply str (map ansi codes)) c)
+						c))))
+		(ansi :reset)))
+
+
+(defn ansify
+	""
+	[& ansified-strings] 
+	(apply str (first 	
+		(reduce 
+			(fn [strings&keywords item]
+				(if (keyword? item) ;; ansi-directive
+					[(first strings&keywords) (conj (second strings&keywords) item)]
+					(if (sequential? item) ;; format-inheriting substring
+						[(conj (first strings&keywords) (apply ansify (concat (second strings&keywords) item)))
+					   (second strings&keywords)]
+						(if (string? item) ;; format string with accumulated ansi-directives
+						  [(conj (first strings&keywords)
+						         (apply ansify-helper (conj (second strings&keywords) item)))
+					     (second strings&keywords)]
+						  [(conj (first strings&keywords)
+						         (apply ansify-helper (conj (second strings&keywords) item)))
+					     (second strings&keywords)]))))
+;;						  strings&keywords)))) ;; ignore other types
+			[[""] []] 
+			ansified-strings))))
+
 
 (defn style-test-page
   "Print the list of supported ANSI styles, each style name shown
