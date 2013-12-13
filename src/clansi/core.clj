@@ -111,9 +111,14 @@
 	The ansi-code directives only affect the strings that follow it. 
 	Returns a single string of the concatenations of the individual strings in the list, where each of these strings is prepended with the accumulated ansi-codes.
 	Example with ansi-codes:
-	(clansify \"this is printed in \" :red \"red\" :reset \", while this is \" :bright :green :underline \"bold&green&underlined.\") 
-	Example with style-codes defined in *ANSI-STYLES* map:
-	(clansify :protected \"this is protected text\" :reset \", while \" :unprotected \"this is an unprotected string.\")
+	(clansify \"this is \" :red \"red\" :reset \", while this is \" :bright :green :underline \"bold&green&underlined.\") 
+	Example with style-codes defined in the *ANSI-STYLES* map:
+	(clansify :protected \"protected text\" :reset \" and \" :unprotected \"an unprotected string.\")
+	Subsequences can be used to change the styling only in the sublist - sublist inherits the style 
+	that was in effect and can have its own additional directives, but once you pop back up to 
+	the higher-level, the sublist directives are forgotten. 
+	Example of subsequence usage:
+	(clansify \"this is \" :red \"red, \" [\"still red, \" :blue \"blue, \"] \"and red again.\") 
 "
 	[& ansified-strings] 
 	(apply str (first 	
@@ -122,16 +127,23 @@
 				(if (keyword? item) ;; ansi-directive
 					[(first strings&keywords) (conj (second strings&keywords) item)]
 					(if (sequential? item) ;; format-inheriting substring
-						[(conj (first strings&keywords) (apply clansify (concat (second strings&keywords) item)))
+						[(conj (first strings&keywords) 
+						       (apply clansify (concat (second strings&keywords) item)))
 					   (second strings&keywords)]
-						(if (string? item) ;; format string with accumulated ansi-directives
-						  [(conj (first strings&keywords)
-						         (apply clansify-helper (conj (second strings&keywords) item)))
-					     (second strings&keywords)]
-						  [(conj (first strings&keywords)
-						         (apply clansify-helper (conj (second strings&keywords) item)))
-					     (second strings&keywords)]))))
-;;						  strings&keywords)))) ;; ignore other types
+						(if (var? item) ;; format-inheriting substring
+							[(conj (first strings&keywords) 
+							       (apply clansify (concat (second strings&keywords) 
+							                               (:ansi-codes (meta item))
+							                               (deref item))))
+							 (second strings&keywords)]
+							(if (string? item) ;; format string with accumulated ansi-directives
+								[(conj (first strings&keywords)
+											 (apply clansify-helper (conj (second strings&keywords) item)))
+								 (second strings&keywords)]
+								[(conj (first strings&keywords)
+											 (apply clansify-helper (conj (second strings&keywords) item)))
+								 (second strings&keywords)])))))
+	;;						  strings&keywords)))) ;; ignore other types
 			[[""] []] 
 			ansified-strings))))
 
@@ -177,7 +189,6 @@
   (doseq [alist (:arglists (meta v))]
    (print "[" (clansify :args (apply str (interpose " " alist))) "]"))
   (println ")")
-
   (when (:macro (meta v))
     (println (clansify :macro "Macro")))
   (println "  " (clansify :doc (:doc (meta v)))))

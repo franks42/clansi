@@ -1,19 +1,20 @@
 CLANSI
 ------
 
-ANSI colorization helper functions for Clojure programs.
+Collection of utilities to colorize terminal output by embedding ansi-code in the strings to print.
+List of available ansi-code directives as keywords are: `(keys ANSI-CODES)`.
+ 
+A call like `(ansi :blue)`, will return the ascii-code string to turn blue-printing on.
 
-You can call `(clansi/style-test-page)` to see what colors and styles are supported
-by your terminal.
+A number of helper functions are available to make the mark-up of strings with ansi-code directives easier:
 
-Wrap strings in ANSI color and style codes like this:
+    (clansify \"this is printed in \" :red \"red\" :reset \", while this is \" :bright :green :underline \"bold&green&underlined.\")
 
-    (style "foo bar" :red)
+In addition to the basic ansi-codes, one can also maintain combinations/sequence of codes in the *ANSI-STYLES* map. The map keys as keywords can be used as colorizing directives in the clansify function, like:
 
-    (style "foo bar" :underline)
+     (clansify :protected \"this is protected text\" :reset \", while \" :unprotected \"this is an unprotected string.\")
 
-    (style "foo bar" :blue :bg-red :underline)
-
+Lastly, there is also a \"cdoc\" macro, which is a colorized substitute for the venerable clojure.repl/doc macro.
 
 You can turn the production of ANSI codes on or off by rebinding the
 `clansi.core/*use-ansi*` variable at runtime. This allows you to
@@ -26,16 +27,21 @@ etc.
 this purpose:
 
     (defn print-colorized [] 
-     (println (style "foo bar" :red)))
+     (println (clansify :red "foo bar")))
 
     (print-colorized) ;; prints "foo bar" in red
     (without-ansi (print-colorized)) ;; prints plain "foo bar", without any ANSI color codes
     (without-ansi (with-ansi (print-colorized)) (print-colorized)) ;; prints a red "foo bar", then a plaintext "foo bar"
 
 
-Bonus Features
+Acknowledgments
 ---------------
 
-* call (clansi/colorize-docs) to make doc colorized
-* also supplies the color-doc macro, a stylized version of doc
+This is a forked and heavily modified version of https://github.com/ams-clj/clansi.
+
+Not sure if this concoction is an improvement... time will tell... if it still seems like an "improvement" in a few weeks, then a pull-request may be appropriate - we'll see.
+
+Thanks to the Mokum Clojurians for the original ideas and code!
+
+Frank Siebenlist.
 
