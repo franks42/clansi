@@ -152,10 +152,10 @@
   "Print the list of supported ANSI styles, each style name shown
   with its own style."
   []
-  (println "ansi-codes:")
+  (println "\nANSI-CODES:\n")
   (doall
     (map #(println (clansify % (name %))) (sort-by name (keys ANSI-CODES))))
-  (println "*ANSI-STYLES* codes:")
+  (println "\n*ANSI-STYLES*:\n")
   (doall
     (map #(println (clansify % (name %))) (sort-by name (keys *ANSI-STYLES*))))
   nil)
