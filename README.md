@@ -6,15 +6,19 @@ List of available ansi-code directives as keywords are: `(keys ANSI-CODES)`.
  
 A call like `(ansi :blue)`, will return the ascii-code string to turn blue-printing on.
 
-A number of helper functions are available to make the mark-up of strings with ansi-code directives easier:
+A convenience function "clansify" is available to make the mark-up of strings with ansi-code directives easier:
 
-    (clansify \"this is printed in \" :red \"red\" :reset \", while this is \" :bright :green :underline \"bold&green&underlined.\")
+    (clansify "this is printed in " :red "red" :reset ", while this is " :bright :green :underline "bold&green&underlined.")
 
-In addition to the basic ansi-codes, one can also maintain combinations/sequence of codes in the *ANSI-STYLES* map. The map keys as keywords can be used as colorizing directives in the clansify function, like:
+clansify accepts a sequence of strings and ansi-code directives as keywords, and those directives apply to the strings that follow.
 
-     (clansify :protected \"this is protected text\" :reset \", while \" :unprotected \"this is an unprotected string.\")
+In addition to the basic ansi-codes, one can also maintain combinations/sequence of codes in the *ANSI-STYLES* map: `(keys *ANSI-STYLES*)`. The map keys as keywords can be used as colorizing directives in the clansify function, like:
 
-Lastly, there is also a \"cdoc\" macro, which is a colorized substitute for the venerable clojure.repl/doc macro.
+     (clansify :protected "this is protected text" :reset ", while " :unprotected "this is an unprotected string.")
+
+Where :protected and :unprotected are mapped to :green and :red, respectively in the *ANSI-STYLES* map.
+
+Lastly, there is also a "cdoc" macro, which is a colorized substitute for the venerable clojure.repl/doc macro: `(cdoc cdoc)`.
 
 You can turn the production of ANSI codes on or off by rebinding the
 `clansi.core/*use-ansi*` variable at runtime. This allows you to
